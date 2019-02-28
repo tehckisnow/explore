@@ -279,11 +279,33 @@ let int = {
     view.interactions.splice(itemIndex, 1);
   },
 
+  //remove item from inventory
+  removeItem: function(id){
+    player.inv.splice(player.inv.findIndex(function(e){return e.id === id}), 1);
+  },
+
   //when clicking on an item in inventory;
   useItem: function(id){
     console.log(id);
     return id;
   },
+
+  //find variable and set it to value
+  //MUST pass in the object containing the variable so that the reference can be modified!
+  //(e.g. int.setVariable(variablesObject, "variableTest", "two");
+  setVariable: function(locationObject, variable, value){
+    locationObject[variable] = value;
+  },
+
+  //if variable is equal to state1, call effect1.  if it is equal to state2, call effect2
+  checkVariable: function(variable, state1, effect1, state2, effect2){
+    if(variable === state1){
+      effect1();
+    }else if(variable === state2){
+      effect2();
+    }
+  },
+  //this is similar to a switch.  Do I need this?
 
   //show closeup
   showCloseup: function(image, interactions){
@@ -340,8 +362,35 @@ let int = {
     engine.updateView();
   },
 
-  addInteraction: function(room, direction, interaction){},
-  removeInteraction: function(room, direction, interaction){},
+  addInteraction: function(interaction, room, direction){
+    let currentRoom;
+    if(room){
+      currentRoom = map.find(function(e){return e.id === room}).directions.find(function(f){return f.dir === direction});
+    }else {
+      currentRoom = engine.getDirection();
+    }
+    currentRoom.interactions.push(interaction);
+    //remove this interaction(so repeated clicks don't cause more interactions to be added)
+
+    engine.updateView();
+  },
+  //pass id of interaction to be removed, and room/direction it is in(optional, you can leave those blank if it is in the current room)
+  removeInteraction: function(interactionId, room, direction){
+    let currentRoom;
+    //if room/facing is specified;
+    if(room){
+      currentRoom = map.find(function(e){return e.id === room}).directions.find(function(f){return f.dir === direction});
+    }else {
+      //if room/facing is unspecified, use current;
+      currentRoom = engine.getDirection();
+    }
+    //if found
+    let item = currentRoom.interactions.findIndex(function(e){return e.id === interactionId});
+    if(item > 0){
+      currentRoom.interactions.splice(item, 1);  //this is removing the switch if there are no other items; why?
+    };
+    engine.updateView();
+  },
   
   //display a text message on the screen
   displayMessage: function(message){
@@ -357,8 +406,58 @@ let int = {
     messageElement.style.cursor = "url(" + settings.uiDirectory + "back.png), auto";
   },
 
-  setVariable: function(variableLocation, value){},
-  toggleSwitch: function(toggleSwitch, state){},
+  //object to create and manage switches
+  switch: {
+    newSwitchId: 0,
+    switches: [],
+    createSwitch: function(state1, effect1, state2, effect2, state3, effect3){ //add more states if necessary?
+      let newSwitch = {};
+      newSwitch.id = int.switch.newSwitchId++;
+      newSwitch.state1 = state1;
+      newSwitch.effect1 = effect1;
+      newSwitch.state2 = state2;
+      newSwitch.effect2 = effect2;
+      newSwitch.state3 = state3;
+      newSwitch.effect3 = effect3;
+      //currentState
+      newSwitch.state = state1;
+      newSwitch.activate = function(){
+        switch(newSwitch.state){
+          case state1:
+            effect1();
+            break;
+          case state2:
+            effect2();
+            break;
+          case state3:
+            effect3();
+            break;
+          default:
+            break;
+        }
+      };
+      int.switch.switches.push(newSwitch);
+      return newSwitch;
+    },
+  },
+  
+  //pass a string to set this switch's current state to that string, leave blank to cycle through states
+  toggleSwitch: function(toggleSwitch, state){
+    let thisSwitch = int.switch.switches.find(function(e){return e.id === toggleSwitch.id});
+    if(state){
+      thisSwitch.state = state;
+    }else{
+      if(thisSwitch.state === thisSwitch.state1 && thisSwitch.state2){
+        thisSwitch.state = thisSwitch.state2;
+      }else if(thisSwitch.state === thisSwitch.state2 && thisSwitch.state3){
+        thisSwitch.state = thisSwitch.state3;
+      }else if(thisSwitch.state === thisSwitch.state2 && thisSwitch.state1){
+        thisSwitch.state = thisSwitch.state1;
+      }
+    }
+    thisSwitch.activate();
+  },
+
   //if player is carring item with id "id", call callback method.  Otherwise, call altCallback
   checkItem: function(id, callback, altCallback){
     let found = false;
@@ -385,18 +484,18 @@ let int = {
     },
     music: async function(track, loop, stop){
       //let track = track.toLowerCase();
-      if((track === "stopall" || track === "stop all") && audio.musicCurrentlyPlaying.length > 0){
-        for(i in audio.musicCurrentlyPlaying){
-          audio.music(audio.musicCurrentlyPlaying[i], false, true);
+      if((track === "stopall" || track === "stop all") && int.audio.musicCurrentlyPlaying.length > 0){
+        for(i in int.audio.musicCurrentlyPlaying){
+          int.audio.music(audio.musicCurrentlyPlaying[i], false, true);
         }
       }else if(stop){
         track.pause()
-        audio.musicCurrentlyPlaying.splice(audio.musicCurrentlyPlaying.indexOf(track), 1);
+        int.audio.musicCurrentlyPlaying.splice(int.audio.musicCurrentlyPlaying.indexOf(track), 1);
       }else{
         try {
           track.load(); //this causes track to start over instead of resume from pause if called again
           await track.play();
-          audio.musicCurrentlyPlaying.push(track);
+          int.audio.musicCurrentlyPlaying.push(track);
         } catch(err) {
           console.log("error: " + err);
         }
