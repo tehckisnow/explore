@@ -397,7 +397,7 @@ let int = {
     let messageElement = document.createElement("div");
     messageElement.setAttribute("id", "messageElement");
     game.appendChild(messageElement);
-    messageElement.style = "position: relative; margin: auto; bottom: 50%; text-align: center; padding: 30px; border: 2px solid white; background-color: rgb(48, 62, 128); color: white; z-index: 30";
+    messageElement.style = "position: relative; margin: auto; bottom: 50%; text-align: center; padding: 30px; max-width: 60%; border: 2px solid white; background-color: rgba(48, 62, 128, 0.8); color: white; z-index: 30";
     let text = document.createElement("p");
     messageElement.appendChild(text);
     text.appendChild(document.createTextNode(message));
@@ -472,6 +472,31 @@ let int = {
       altCallback();
     }
   }, //if you have x, do y
+
+  door: {
+    doors: [],
+    nextId: 0,
+    new: function(){
+      let newDoor = {room, facing, state, exit, open, unlock, unlockedBy, audio};
+      newDoor.id = int.door.nextId++;
+      newDoor.room = room;
+      newDoor.facing = facing;
+      newDoor.state = state;
+      newDoor.exit = exit;
+      newDoor.open = open;
+      newDoor.unlock = unlock;
+      newDoor.unlockedBy = unlockedBy;
+      newDoor.audio = audio;
+      newDoor.unlock = function(id){},
+      newDoor.open = function(id){},
+      newDoor.close = function(id){},
+      int.door.doors.push[newDoor];
+      return newDoor;
+    },
+    // unlock: function(id){},
+    // open: function(id){},
+    // close: function(id){},
+  },
 
   //play/stop music()
   audio: {

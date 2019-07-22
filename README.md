@@ -2,11 +2,21 @@
 
 
 //TODO:
+//transitions: move img right when turning left, etc.
+
 //examine tool? (select examine and then click on something? or )
 
 //why arn't fonts working?
 
 clicking on inventory items in firefox works, but not in chrome
+
+slideshow: like closeup but with an onclick that advances to next image
+
+events: after updateView() check if current room has an event and if so, immediately start that script
+
+//animations
+  //gifs? other?
+  inventory fade in or slide up instead of instantly appear
 
 //ensure units is dictated by explore.js, not testgame.js
 //choose units that will permit adjusting resolution without having to modify every interaction
